@@ -37,6 +37,8 @@ int x = 0;
 int y = 1;
 int w = 2;
 
+int yPosition = 90;
+
 Servo xServo;
 Servo yServo;
 
@@ -59,10 +61,13 @@ void setup() {
 
 void loop() {
 
+  //Read data of joystick
   int valx = analogRead(x);
   int valy = analogRead(y);
   int valw = analogRead(w);
 
+
+  //laser control
   boolean currentButton;
   
   if(valw == 0){
@@ -82,15 +87,52 @@ void loop() {
     if(previousButton == false && currentButton == HIGH) { 
       ledState = !ledState;
   }
+  
   previousButton = currentButton; 
   digitalWrite(ledPin, ledState);
+
+
+
+  // xPosition
+  int xPosition = map(valy, 0, 1023, 180, 0);
+  int xStand = 90;
   
-  int position = map(valy, 0, 1023, 180, 0);
-  if(position == 86){
-    position = 90;
+  
+  if(xPosition >= 92 || xPosition <= 86){
+    if(xPosition > 90){
+      xStand = min(xPosition, 96);
+    }else if(xPosition < 90){
+      xStand = max(xPosition, 84);
+    }
+  }else{
+    xPosition = 90;
   }
   
-  xServo.write(position);
-  yServo.write(map(valx, 0, 1025, 0, 180));
+  xServo.write(xStand);
+
+
+  // yPosition
+  if(valx >= 540 || valx <= 520){
+    if(valx > 536){
+      if(yPosition >= 180){
+        yPosition = 180;
+      }else{
+        yPosition+=2;
+      }
+    }
+
+    if(valx < 536){
+      if(yPosition <= 0){
+        yPosition = 0;
+      }else{
+        yPosition-=2;
+      }
+    }
+
+    yServo.write(yPosition);
+    
+  }
+  
   delay(200);
-}
+}   
+
